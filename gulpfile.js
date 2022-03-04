@@ -9,8 +9,9 @@ let browserify = require('browserify');
 const source = require("vinyl-source-stream");
 const buffer = require("vinyl-buffer");
 const uglify = require("gulp-uglify");
+const serve = require("gulp-serve");
 let sourcemaps = require('gulp-sourcemaps');
-let sass = require('gulp-sass');
+let sass = require('gulp-sass')(require('sass'));
 let rename = require('gulp-rename');
 var exec = require('child_process').exec;
 let del = require('del');
@@ -110,6 +111,16 @@ gulp.task('watch', function(cb) {
 	gulp.watch('src/stylesheets/**/*.scss', gulp.series(['build-stylesheets']));
 });
 
+gulp.task('serve', serve('dist'));
+gulp.task('serve-build', serve(['dist', 'build']));
+gulp.task('serve-prod', serve({
+  root: ['dist', 'build'],
+  port: 80,
+  middleware: function(req, res) {
+    // custom optional middleware
+  }
+}));
+
 /*
  * Master build tasks.
  */
@@ -117,3 +128,5 @@ gulp.task('build', gulp.series('purge', gulp.parallel('build-images', 'build-scr
 	return cb();
 }));
 gulp.task('build-and-watch', gulp.series('build', 'watch'));
+gulp.task('serve-and-watch', gulp.parallel('serve-build', 'watch'));
+gulp.task('sw', gulp.series('serve-and-watch'));
